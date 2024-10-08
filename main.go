@@ -39,22 +39,14 @@ func main() {
 	}
 	defer conn.Close()
 
-	command := "GET test 1"
+	command := "SET test 1"
 	message := buildMessage(command)
+  sendMessage(conn, message)
 
-	fmt.Println(message)
-	size, err := conn.Write(message)
-	if err != nil {
-		panic(err)
-	}
+	command = "GET test 1"
+	message = buildMessage(command)
+  sendMessage(conn, message)
 
-  buff := make([]byte, 1024)
-  n, err := conn.Read(buff)
-  if err != nil {
-    suggar.Errorf("Error reading message %v", err)
-  }
-	suggar.Infof("%d written\n", size)
-  suggar.Infof("Reply: %s\n", buff[:n])
 }
 
 func buildMessage(command string) Message {
@@ -74,6 +66,22 @@ func buildMessage(command string) Message {
 	}
 	binary.LittleEndian.PutUint32(message[0:4], uint32(counter))
 	return message
+}
+
+func sendMessage(conn *net.TCPConn, message Message) {
+	fmt.Println(message)
+	size, err := conn.Write(message)
+	if err != nil {
+		panic(err)
+	}
+
+  buff := make([]byte, 1024)
+  n, err := conn.Read(buff)
+  if err != nil {
+    suggar.Errorf("Error reading message %v", err)
+  }
+	suggar.Infof("%d written\n", size)
+  suggar.Infof("Reply: %s\n", buff[:n])
 }
 
 func appendUint32(message Message, length uint32) []byte {
